@@ -13,11 +13,13 @@
     "electron:dev": "vite build && electron .",
     "electron:build": "vite build && electron-builder",
     "electron:build:deb": "vite build && electron-builder --linux deb",
-    "electron:build:flatpak": "vite build && electron-builder --linux flatpak"
+    "electron:build:flatpak": "vite build && electron-builder --linux flatpak",
+    "deploy": "npm run build && cp dist/index.html dist/404.html && neocities push dist/"
   },
   "devDependencies": {
     "electron": "^35.0.0",
     "electron-builder": "^25.1.0",
+    "neocities": "^0.0.3",
     "vite": "^6.0.0"
   },
   "build": {
@@ -31,7 +33,10 @@
       "electron/**/*"
     ],
     "linux": {
-      "target": ["deb", "flatpak"],
+      "target": [
+        "deb",
+        "flatpak"
+      ],
       "icon": "build/icon.png",
       "category": "AudioVideo"
     },
