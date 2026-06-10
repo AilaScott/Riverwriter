@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RiverWriter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+  <div class="app-grid">
+    <div class="box pomo-box" id="pomo-box">
+      <div class="pomo-label">FOCUS</div>
+      <div class="pomo-circle-wrap">
+        <svg class="pomo-svg" viewBox="0 0 120 120" id="pomo-svg">
+          <circle class="pomo-track" cx="60" cy="60" r="50" fill="none" stroke="#E8E0D8" stroke-width="8"/>
+          <circle class="pomo-progress" cx="60" cy="60" r="50" fill="none" stroke="#FF6B35" stroke-width="8"
+            stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="0"
+            transform="rotate(-90 60 60)"/>
+          <foreignObject x="10" y="10" width="100" height="100">
+            <div class="pomo-tardigrade" id="pomo-tardigrade"></div>
+          </foreignObject>
+        </svg>
+      </div>
+      <div class="pomo-time" id="pomo-time">30:00</div>
+      <div class="pomo-controls">
+        <button class="pomo-btn" id="pomo-start">▶</button>
+        <button class="pomo-btn" id="pomo-reset">⟳</button>
+      </div>
+      <div class="pomo-settings">
+        <label>Focus
+          <select id="pomo-focus">
+            <option value="30" selected>30m</option>
+            <option value="35">35m</option>
+            <option value="40">40m</option>
+            <option value="45">45m</option>
+          </select>
+        </label>
+        <label>Break
+          <select id="pomo-break">
+            <option value="5">5m</option>
+            <option value="10" selected>10m</option>
+            <option value="15">15m</option>
+            <option value="20">20m</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="box streak-box" id="streak-box">
+      <div class="pomo-streak" id="pomo-streak">🔥 —</div>
+    </div>
+
+    <div class="box editor-box" id="editor-box">
+      <div class="editor-toolbar">
+        <div class="toolbar-row">
+          <button class="tb-btn" id="song-new"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 2v12M2 8h12"/></svg> New Song</button>
+          <select class="song-select" id="song-select"></select>
+          <button class="tb-btn song-del-btn" id="song-del" title="Delete song">✕</button>
+        </div>
+        <div class="toolbar-row">
+          <button class="tb-btn" id="add-section">+ Section</button>
+          <div class="toolbar-spacer"></div>
+          <button class="tb-btn save-btn" id="save-btn"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4L6 12l-3-3"/></svg> Save</button>
+          <button class="tb-btn export-btn" id="export-btn"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 11V3"/><path d="M5 6l3-3 3 3"/><path d="M2 10v3h12v-3"/></svg> Export</button>
+          <button class="tb-btn import-btn" id="import-btn"><svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v8"/><path d="M5 8l3 3 3-3"/><path d="M2 11v3h12v-3"/></svg> Import</button>
+          <input type="file" id="import-input" accept=".json" style="display:none">
+        </div>
+      </div>
+      <div class="editor-scroll" id="editor-scroll">
+        <div class="editor-sections" id="editor-sections"></div>
+      </div>
+    </div>
+
+    <div class="right-col" id="right-col">
+      <div class="box record-box" id="record-box">
+        <div class="record-label">RECORD</div>
+        <div class="record-controls">
+          <button class="rec-btn" id="rec-btn">●</button>
+          <button class="play-btn" id="play-btn" disabled>▶</button>
+        </div>
+        <div class="record-waveform" id="record-waveform"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="playback-bar" id="playback-bar" style="display:none">
+          <span class="playback-time" id="playback-time">0:00 / 0:00</span>
+          <div class="playback-track"><div class="playback-fill" id="playback-fill"></div></div>
+        </div>
+        <audio id="record-playback" style="display:none"></audio>
+      </div>
+
+      <div class="box chord-box" id="chord-box">
+        <div class="chord-label">CHORD IDEAS</div>
+        <div class="chord-controls">
+          <select class="chord-select" id="chord-root">
+            <option value="C">C</option>
+            <option value="Db">Db</option>
+            <option value="D">D</option>
+            <option value="Eb">Eb</option>
+            <option value="E">E</option>
+            <option value="F">F</option>
+            <option value="F#">F#</option>
+            <option value="G">G</option>
+            <option value="Ab">Ab</option>
+            <option value="A">A</option>
+            <option value="Bb">Bb</option>
+            <option value="B">B</option>
+          </select>
+          <select class="chord-select" id="chord-quality">
+            <option value="major">Major</option>
+            <option value="minor">Minor</option>
+          </select>
+        </div>
+        <div class="chord-display" id="chord-display">
+          <span class="chord-placeholder">Select options and press ⟳</span>
+        </div>
+        <div class="chord-actions">
+          <button class="chord-btn" id="chord-refresh">⟳ Generate</button>
+          <button class="chord-btn" id="chord-back" disabled>← Back</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="settings-btn" id="settings-icon" title="Settings">⚙</button>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

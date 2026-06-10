@@ -1,0 +1,43 @@
+{
+  "name": "riverwriter",
+  "version": "1.0.0",
+  "description": "A zany tardigrade-themed songwriting drafting tool",
+  "type": "module",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "sound": "node scripts/generate-sound.js",
+    "postinstall": "node scripts/generate-sound.js",
+    "electron:dev": "vite build && electron .",
+    "electron:build": "vite build && electron-builder",
+    "electron:build:deb": "vite build && electron-builder --linux deb",
+    "electron:build:flatpak": "vite build && electron-builder --linux flatpak"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^25.1.0",
+    "vite": "^6.0.0"
+  },
+  "build": {
+    "appId": "com.riverwriter.app",
+    "productName": "RiverWriter",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*"
+    ],
+    "linux": {
+      "target": ["deb", "flatpak"],
+      "icon": "build/icon.png",
+      "category": "AudioVideo"
+    },
+    "flatpak": {
+      "runtimeVersion": "24.08",
+      "branch": "stable"
+    }
+  }
+}

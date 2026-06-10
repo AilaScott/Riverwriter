@@ -1,0 +1,165 @@
+import { createPomodoro } from './components/pomodoro.js';
+import { createEditor } from './components/editor.js';
+import { createChordGen } from './components/chord-gen.js';
+import { createRecorder } from './components/recorder.js';
+import { createSettings } from './components/settings.js';
+import {
+  getIndex, getActiveSong, setActiveSong, updateActiveSong,
+  createSong, deleteSong, exportSong, importSongFromFile,
+  migrateOldSave, updateStreak,
+} from './lib/storage.js';
+
+let saveTimeout = null;
+let currentSongId = null;
+let editor, chordGen;
+
+function debounceAutoSave(fn, ms = 500) {
+  return (...args) => {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => fn(...args), ms);
+  };
+}
+
+function doAutoSave() {
+  if (!currentSongId) return;
+  const sections = editor.getSections();
+  const chordState = chordGen.getState();
+  updateActiveSong({ editorSections: sections, chordGen: chordState });
+}
+
+function populateSongSelect(select, songs, activeId) {
+  select.innerHTML = '';
+  songs.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s.name;
+    select.appendChild(opt);
+  });
+  select.value = activeId || '';
+}
+
+function loadSong(song) {
+  if (!song) return;
+  currentSongId = song.id;
+
+  if (song.editorSections && song.editorSections.length > 0) {
+    editor.loadSections(song.editorSections);
+  } else {
+    editor.clear();
+    editor.addSection({ header: 'Verse 1' });
+  }
+
+  if (song.chordGen) {
+    chordGen.setState(song.chordGen);
+  } else {
+    chordGen.setState(null);
+  }
+}
+
+function init() {
+  const pomoBox = document.getElementById('pomo-box');
+  const editorBox = document.getElementById('editor-box');
+  const chordBox = document.getElementById('chord-box');
+  const recordBox = document.getElementById('record-box');
+
+  const pomodoro = createPomodoro(pomoBox);
+  editor = createEditor(editorBox, debounceAutoSave(doAutoSave));
+  chordGen = createChordGen(chordBox);
+  const recorder = createRecorder(recordBox);
+
+  const streakEl = document.getElementById('pomo-streak');
+  const streakCount = updateStreak();
+  const emotes = [':3', '<3', ':)', ':))', '>:)'];
+  const emoteIdx = (streakCount - 1) % emotes.length;
+  const emote = emotes[emoteIdx];
+  streakEl.textContent = streakCount > 0
+    ? `${emote} ${streakCount}-day streak`
+    : `${emote} Start your streak!`;
+
+  migrateOldSave();
+
+  let idx = getIndex();
+  let activeSong = getActiveSong();
+  if (!idx || !activeSong) {
+    activeSong = createSong('Untitled Song');
+    idx = getIndex();
+  }
+
+  const songSelect = document.getElementById('song-select');
+  populateSongSelect(songSelect, idx.songs, activeSong.id);
+  loadSong(activeSong);
+
+  songSelect.addEventListener('change', () => {
+    doAutoSave();
+    const ix = getIndex();
+    const song = ix.songs.find(s => s.id === songSelect.value);
+    if (song) {
+      setActiveSong(song.id);
+      loadSong(song);
+    }
+  });
+
+  document.getElementById('song-new').addEventListener('click', () => {
+    const name = prompt('Song name:');
+    if (name === null) return;
+    const cleaned = name.trim() || 'Untitled Song';
+    doAutoSave();
+    createSong(cleaned);
+    const ix = getIndex();
+    populateSongSelect(songSelect, ix.songs, ix.activeSongId);
+    loadSong(getActiveSong());
+  });
+
+  document.getElementById('song-del').addEventListener('click', () => {
+    const ix = getIndex();
+    if (!ix || ix.songs.length <= 1) return;
+    if (!confirm('Delete this song?')) return;
+    doAutoSave();
+    deleteSong(currentSongId);
+    const ix2 = getIndex();
+    populateSongSelect(songSelect, ix2.songs, ix2.activeSongId);
+    loadSong(getActiveSong());
+  });
+
+  const importInput = document.getElementById('import-input');
+  document.getElementById('import-btn').addEventListener('click', () => {
+    importInput.click();
+  });
+  importInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        const song = importSongFromFile(data, file.name);
+        const ix = getIndex();
+        populateSongSelect(songSelect, ix.songs, song.id);
+        loadSong(song);
+      } catch {
+        alert('Invalid file format');
+      }
+    };
+    reader.readAsText(file);
+    importInput.value = '';
+  });
+
+  document.getElementById('export-btn').addEventListener('click', () => {
+    doAutoSave();
+    const ix = getIndex();
+    const song = ix.songs.find(s => s.id === currentSongId);
+    if (song) exportSong(song);
+  });
+
+  const saveBtn = document.getElementById('save-btn');
+  const SAVE_ICON = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13 4L6 12l-3-3"/></svg>';
+  saveBtn.addEventListener('click', () => {
+    doAutoSave();
+    saveBtn.innerHTML = '✓ Saved';
+    setTimeout(() => { saveBtn.innerHTML = SAVE_ICON + ' Save'; }, 1500);
+  });
+
+  createSettings();
+}
+
+document.addEventListener('DOMContentLoaded', init);
