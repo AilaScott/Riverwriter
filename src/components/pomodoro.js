@@ -181,8 +181,12 @@ export function createPomodoro(container) {
   function switchMode() {
     if (state.mode === 'focus') {
       state.mode = 'break';
+      state.running = true;
       setTimeLeft(getBreakTime());
       showBreakPopup();
+      state.interval = setInterval(tick, 1000);
+      startBtn.textContent = '⏸';
+      setInputsEnabled(false);
     } else {
       state.mode = 'focus';
       setTimeLeft(getFocusTime());
