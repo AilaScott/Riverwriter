@@ -88,12 +88,13 @@ main.js (init)
 - **`storage.js`** — All localStorage persistence. 12 exported functions. Song CRUD, import/export helpers, streak tracking, old-save migration, settings load/save. `uid()` generates IDs from timestamp + random. `emptySong()` creates a default song object. No UI logic.
 - **`music-theory.js`** — Chord generation engine. All 12 major + 12 minor keys. Weighted pool favors triads and 7ths (duplicated), with lighter weight on 9ths and add9s. First chord always I, last chord tends toward V7 or I. Output formatted as `Cmaj7  Dm7  G7  Cmaj7` (space-separated, no bars).
 - **`themes.js`** — Theme definitions (7 presets: default/forest/ocean/sunset/mono/red/black). `applyTheme()` sets `--orange-dark`/`--orange-light` CSS vars on `:root`. `applyCustomBg()` sets body background with dark overlay.
+- **`audio-storage.js`** — IndexedDB wrapper for recording blobs. `saveRecording(songId, blob)`, `loadRecording(songId)`, `deleteRecording(songId)`. Also exports `blobToBase64()` and `base64ToBlob()` for export/import.
 
 ### `src/components/`
 - **`pomodoro.js`** — 30min focus / 10min break timer (adjustable via dropdown selects). SVG circle countdown using stroke-dashoffset. Tardigrade image loaded from `public/tardigrade.png`. Sound plays on mode switch. FOCUS label uses `--orange-dark` inline style. The `SOUND_PATH` constant is the single place to change the sound file.
 - **`editor.js`** — Structured sections with 3 contenteditable divs (header bold, chord line monospace, lyrics regular). Add/remove sections. `onChange` callback fires on any input for auto-save. `getSections()` serializes DOM to array.
 - **`chord-gen.js`** — Dropdowns for root + quality (no bars/time-sig). Refresh/Back buttons. History stack stored in memory (not in DOM). Label reads "CHORD IDEAS". `getState()`/`setState()` for serialization.
-- **`recorder.js`** — MediaRecorder API with real-time waveform (AnalyserNode, 5 orange bars). Record/Stop. Custom orange playback bar with progress fill. Orange pulse animation while recording. Blob stored in memory only.
+- **`recorder.js`** — MediaRecorder API with real-time waveform (AnalyserNode, 5 orange bars). Record/Stop. Custom orange playback bar with progress fill. Orange pulse animation while recording. `getBlob()`/`hasBlob()`/`loadBlob()`/`clearBlob()` for blob lifecycle. Download button triggers `.webm` download.
 - **`settings.js`** — Fixed gear button (bottom-left). Popup overlay with 7 theme swatches and custom background URL input. Closes on click-outside or Escape. Theme + background persisted to `riverwriter-settings`.
 
 ### `electron/`
@@ -124,9 +125,12 @@ main.js (init)
 - `getState()`: Returns `{ history, historyIndex, lastKey, lastRoot, lastQuality }`.
 - `setState(saved)`: Restores from saved state object.
 
-### `createRecorder(container)` → `{ isRecording, getBlob }`
+### `createRecorder(container, onRecordingChange?)` → `{ isRecording, getBlob, hasBlob, loadBlob, clearBlob }`
 - `isRecording()`: Bool.
 - `getBlob()`: The current recording as a Blob, or null.
+- `hasBlob()`: Whether a recording exists.
+- `loadBlob(blob)`: Restores a blob for playback (sets controls, playback bar).
+- `clearBlob()`: Clears the current recording from the UI.
 
 ## DO conventions
 - Use `querySelector('#id')` for known elements (performance)
@@ -145,7 +149,7 @@ main.js (init)
 - Do NOT use server-side logic
 - Do NOT modify `prompt()` / `confirm()` dialogs — they're used for song name and delete confirmation
 - Do NOT remove the `base: './'` in vite.config.js (Electron needs relative paths)
-- Do NOT use `localStorage` keys other than `riverwriter-songs`, `riverwriter-streak`, and `riverwriter-settings`
+- Do NOT use `localStorage` keys other than `riverwriter-songs`, `riverwriter-streak`, and `riverwriter-settings` (audio blobs use IndexedDB instead)
 - Do NOT use emoji in buttons (use SVGs with `currentColor` for theme compatibility)
 - Do NOT remove `.right-col` wrapper — record + chord depend on it for desktop layout
 

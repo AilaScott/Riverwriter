@@ -2,6 +2,7 @@ import { createPomodoro } from './components/pomodoro.js';
 import { createEditor } from './components/editor.js';
 import { createChordGen } from './components/chord-gen.js';
 import { createRecorder } from './components/recorder.js';
+import { saveRecording, loadRecording, deleteRecording } from './lib/audio-storage.js';
 import { createSettings } from './components/settings.js';
 import {
   getIndex, getActiveSong, setActiveSong, updateActiveSong,
@@ -11,7 +12,7 @@ import {
 
 let saveTimeout = null;
 let currentSongId = null;
-let editor, chordGen;
+let editor, chordGen, recorder;
 
 function debounceAutoSave(fn, ms = 500) {
   return (...args) => {
@@ -38,7 +39,7 @@ function populateSongSelect(select, songs, activeId) {
   select.value = activeId || '';
 }
 
-function loadSong(song) {
+async function loadSong(song) {
   if (!song) return;
   currentSongId = song.id;
 
@@ -54,9 +55,14 @@ function loadSong(song) {
   } else {
     chordGen.setState(null);
   }
+
+  if (recorder) {
+    const blob = await loadRecording(song.id);
+    recorder.loadBlob(blob);
+  }
 }
 
-function init() {
+async function init() {
   const pomoBox = document.getElementById('pomo-box');
   const editorBox = document.getElementById('editor-box');
   const chordBox = document.getElementById('chord-box');
@@ -65,7 +71,11 @@ function init() {
   const pomodoro = createPomodoro(pomoBox);
   editor = createEditor(editorBox, debounceAutoSave(doAutoSave));
   chordGen = createChordGen(chordBox);
-  const recorder = createRecorder(recordBox);
+  recorder = createRecorder(recordBox, (blob) => {
+    if (currentSongId) {
+      saveRecording(currentSongId, blob);
+    }
+  });
 
   const streakEl = document.getElementById('pomo-streak');
   const streakCount = updateStreak();
@@ -87,56 +97,64 @@ function init() {
 
   const songSelect = document.getElementById('song-select');
   populateSongSelect(songSelect, idx.songs, activeSong.id);
-  loadSong(activeSong);
+  await loadSong(activeSong);
 
-  songSelect.addEventListener('change', () => {
+  songSelect.addEventListener('change', async () => {
     doAutoSave();
+    if (currentSongId && recorder.getBlob()) {
+      await saveRecording(currentSongId, recorder.getBlob());
+    }
     const ix = getIndex();
     const song = ix.songs.find(s => s.id === songSelect.value);
     if (song) {
       setActiveSong(song.id);
-      loadSong(song);
+      await loadSong(song);
     }
   });
 
-  document.getElementById('song-new').addEventListener('click', () => {
+  document.getElementById('song-new').addEventListener('click', async () => {
     const name = prompt('Song name:');
     if (name === null) return;
     const cleaned = name.trim() || 'Untitled Song';
+    if (currentSongId && recorder.getBlob()) {
+      await saveRecording(currentSongId, recorder.getBlob());
+    }
     doAutoSave();
     createSong(cleaned);
     const ix = getIndex();
     populateSongSelect(songSelect, ix.songs, ix.activeSongId);
-    loadSong(getActiveSong());
+    await loadSong(getActiveSong());
   });
 
-  document.getElementById('song-del').addEventListener('click', () => {
+  document.getElementById('song-del').addEventListener('click', async () => {
     const ix = getIndex();
     if (!ix || ix.songs.length <= 1) return;
     if (!confirm('Delete this song?')) return;
     doAutoSave();
+    await deleteRecording(currentSongId);
     deleteSong(currentSongId);
     const ix2 = getIndex();
     populateSongSelect(songSelect, ix2.songs, ix2.activeSongId);
-    loadSong(getActiveSong());
+    await loadSong(getActiveSong());
   });
 
   const importInput = document.getElementById('import-input');
   document.getElementById('import-btn').addEventListener('click', () => {
     importInput.click();
   });
-  importInput.addEventListener('change', (e) => {
+  importInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onload = async (ev) => {
       try {
         const data = JSON.parse(ev.target.result);
-        const song = importSongFromFile(data, file.name);
+        const song = await importSongFromFile(data, file.name);
         const ix = getIndex();
         populateSongSelect(songSelect, ix.songs, song.id);
-        loadSong(song);
-      } catch {
+        await loadSong(song);
+      } catch (err) {
+        console.warn('Import error:', err);
         alert('Invalid file format');
       }
     };
@@ -144,11 +162,14 @@ function init() {
     importInput.value = '';
   });
 
-  document.getElementById('export-btn').addEventListener('click', () => {
+  document.getElementById('export-btn').addEventListener('click', async () => {
     doAutoSave();
     const ix = getIndex();
     const song = ix.songs.find(s => s.id === currentSongId);
-    if (song) exportSong(song);
+    if (song) {
+      const blob = recorder.getBlob();
+      exportSong(song, blob);
+    }
   });
 
   const saveBtn = document.getElementById('save-btn');

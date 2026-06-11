@@ -388,6 +388,22 @@ html, body {
 }
 .play-btn:not(:disabled):hover { border-color: var(--orange-dark); color: var(--orange-dark); }
 .play-btn.enabled { border-color: var(--orange-dark); color: var(--orange-dark); }
+.dl-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  background: transparent;
+  color: #ccc;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dl-btn:disabled { cursor: default; }
+.dl-btn:not(:disabled):hover { border-color: var(--orange-dark); color: var(--orange-dark); }
 .record-playback { width: 100%; margin-top: 4px; }
 
 .record-waveform {

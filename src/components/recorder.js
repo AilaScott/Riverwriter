@@ -1,6 +1,7 @@
-export function createRecorder(container) {
+export function createRecorder(container, onRecordingChange) {
   const recBtn = container.querySelector('#rec-btn');
   const playBtn = container.querySelector('#play-btn');
+  const dlBtn = container.querySelector('#dl-btn');
   const playback = container.querySelector('#record-playback');
   const waveform = container.querySelector('#record-waveform');
   const bars = waveform.querySelectorAll('span');
@@ -17,6 +18,18 @@ export function createRecorder(container) {
   let analyser = null;
   let animFrameId = null;
   let dataArray = null;
+
+  function updateControlStates() {
+    const hasBlob = currentBlob !== null;
+    playBtn.disabled = !hasBlob;
+    if (hasBlob) {
+      playBtn.classList.add('enabled');
+      dlBtn.disabled = false;
+    } else {
+      playBtn.classList.remove('enabled');
+      dlBtn.disabled = true;
+    }
+  }
 
   function draw() {
     analyser.getByteFrequencyData(dataArray);
@@ -53,6 +66,15 @@ export function createRecorder(container) {
     playbackFill.style.width = `${(cur / dur) * 100}%`;
   }
 
+  function setupPlaybackEvents() {
+    playback.addEventListener('loadedmetadata', updatePlaybackUI);
+    playback.addEventListener('timeupdate', updatePlaybackUI);
+    playback.addEventListener('ended', () => {
+      playback.currentTime = 0;
+      updatePlaybackUI();
+    });
+  }
+
   async function startRecording() {
     try {
       stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -74,20 +96,16 @@ export function createRecorder(container) {
         currentBlob = new Blob(chunks, { type: 'audio/webm' });
         const url = URL.createObjectURL(currentBlob);
         playback.src = url;
-        playBtn.disabled = false;
-        playBtn.classList.add('enabled');
         playbackBar.style.display = 'flex';
         playbackTime.textContent = '0:00 / 0:00';
         playbackFill.style.width = '0%';
-        playback.addEventListener('loadedmetadata', updatePlaybackUI);
-        playback.addEventListener('timeupdate', updatePlaybackUI);
-        playback.addEventListener('ended', () => {
-          playback.currentTime = 0;
-          updatePlaybackUI();
-        });
+        setupPlaybackEvents();
+        updateControlStates();
 
         stream.getTracks().forEach(t => t.stop());
         stream = null;
+
+        if (onRecordingChange) onRecordingChange(currentBlob);
       };
 
       mediaRecorder.start();
@@ -95,6 +113,7 @@ export function createRecorder(container) {
       recBtn.textContent = '■';
       recBtn.classList.add('active');
       playBtn.disabled = true;
+      dlBtn.disabled = true;
       playbackBar.style.display = 'none';
       draw();
     } catch (err) {
@@ -137,11 +156,59 @@ export function createRecorder(container) {
     }
   }
 
+  function downloadRecording() {
+    if (!currentBlob) return;
+    const url = URL.createObjectURL(currentBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'recording.webm';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   recBtn.addEventListener('click', toggleRecording);
   playBtn.addEventListener('click', playRecording);
+  dlBtn.addEventListener('click', downloadRecording);
 
   return {
     isRecording: () => recording,
     getBlob: () => currentBlob,
+    hasBlob: () => currentBlob !== null,
+    loadBlob(blob) {
+      if (currentBlob) {
+        URL.revokeObjectURL(playback.src);
+      }
+      currentBlob = blob || null;
+      if (currentBlob) {
+        const url = URL.createObjectURL(currentBlob);
+        playback.src = url;
+        playbackBar.style.display = 'flex';
+        playbackTime.textContent = '0:00 / 0:00';
+        playbackFill.style.width = '0%';
+        setupPlaybackEvents();
+      } else {
+        playback.removeAttribute('src');
+        playbackBar.style.display = 'none';
+        playbackTime.textContent = '';
+        playbackFill.style.width = '0%';
+      }
+      updateControlStates();
+    },
+    clearBlob() {
+      if (playback.src) {
+        URL.revokeObjectURL(playback.src);
+      }
+      playback.removeAttribute('src');
+      currentBlob = null;
+      playbackBar.style.display = 'none';
+      playbackTime.textContent = '';
+      playbackFill.style.width = '0%';
+      updateControlStates();
+    },
+    setDownloadName(name) {
+      dlBtn._name = name;
+    },
   };
 }

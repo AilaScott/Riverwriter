@@ -77,13 +77,20 @@ export function deleteSong(id) {
   saveIndex(idx);
 }
 
-export function exportSong(song) {
+export async function exportSong(song, audioBlob) {
   const payload = {
     version: 2,
     exportedAt: new Date().toISOString(),
     name: song.name,
     sections: song.editorSections,
   };
+
+  if (audioBlob) {
+    const { blobToBase64 } = await import('./audio-storage.js');
+    payload.audioBase64 = await blobToBase64(audioBlob);
+    payload.audioMime = audioBlob.type;
+  }
+
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -95,7 +102,7 @@ export function exportSong(song) {
   URL.revokeObjectURL(url);
 }
 
-export function importSongFromFile(data, fileName) {
+export async function importSongFromFile(data, fileName) {
   let sections = [];
   let name = fileName.replace(/\.json$/i, '').replace(/[_-]/g, ' ') || 'Imported Song';
 
@@ -122,6 +129,13 @@ export function importSongFromFile(data, fileName) {
   idx.songs.push(song);
   idx.activeSongId = song.id;
   saveIndex(idx);
+
+  if (data.audioBase64) {
+    const { base64ToBlob, saveRecording } = await import('./audio-storage.js');
+    const blob = base64ToBlob(data.audioBase64, data.audioMime || 'audio/webm');
+    await saveRecording(song.id, blob);
+  }
+
   return song;
 }
 
