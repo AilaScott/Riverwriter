@@ -222,6 +222,10 @@ html, body {
 .song-del-btn:hover { border-color: #e55; color: #e55; }
 
 .tb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   padding: 6px 14px;
   border-radius: 8px;
   border: 2px solid var(--orange-dark);
@@ -235,7 +239,7 @@ html, body {
   white-space: nowrap;
 }
 .tb-btn:hover { background: var(--orange-dark); color: white; }
-.tb-btn svg { vertical-align: middle; margin-bottom: 1px; }
+.tb-btn svg { flex-shrink: 0; }
 
 .editor-scroll {
   flex: 1;
