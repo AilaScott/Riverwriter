@@ -13,13 +13,11 @@
     "electron:dev": "vite build && electron .",
     "electron:build": "vite build && electron-builder",
     "electron:build:deb": "vite build && electron-builder --linux deb",
-    "electron:build:flatpak": "vite build && electron-builder --linux flatpak",
-    "deploy": "npm run build && cp dist/index.html dist/404.html && neocities push dist/"
+    "electron:build:flatpak": "vite build && electron-builder --linux flatpak"
   },
   "devDependencies": {
     "electron": "^35.0.0",
     "electron-builder": "^25.1.0",
-    "neocities-cli": "^0.6.0",
     "vite": "^6.0.0"
   },
   "build": {

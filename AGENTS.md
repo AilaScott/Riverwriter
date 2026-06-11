@@ -156,7 +156,6 @@ npm run build         # Production build to dist/
 npm run electron:dev  # Build + launch Electron
 npm run electron:build:deb     # Package as .deb
 npm run electron:build:flatpak # Package as Flatpak
-npm run deploy        # Build + push dist/ to Neocities (requires `neocities login` first)
 ```
 
 ## First-time agent setup
