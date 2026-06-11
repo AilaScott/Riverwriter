@@ -714,3 +714,56 @@ html, body {
   from { opacity: 0; transform: translateY(4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ─── BREAK POPUP ─── */
+.break-popup-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.break-popup-overlay.visible {
+  opacity: 1;
+}
+.break-popup {
+  background: var(--cream);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  max-width: 340px;
+  width: 90vw;
+}
+.break-popup-msg {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--orange-dark);
+  text-align: center;
+  line-height: 1.5;
+}
+.break-popup-close {
+  padding: 8px 24px;
+  border-radius: 8px;
+  border: 2px solid var(--orange-dark);
+  background: var(--orange-dark);
+  color: white;
+  font-family: var(--font);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.15s;
+}
+.break-popup-close:hover {
+  background: transparent;
+  color: var(--orange-dark);
+}
