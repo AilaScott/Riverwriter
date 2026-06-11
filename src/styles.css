@@ -9,7 +9,6 @@
   --orange-light: #FFB347;
   --cream: #FFFBF5;
   --text: #1A1A1A;
-  --hot-pink: #FF3366;
   --teal: #2EC4B6;
   --border: #E8E0D8;
   --shadow: rgba(0,0,0,0.08);
@@ -220,7 +219,7 @@ html, body {
   justify-content: center;
   flex-shrink: 0;
 }
-.song-del-btn:hover { border-color: var(--hot-pink); color: var(--hot-pink); }
+.song-del-btn:hover { border-color: #e55; color: #e55; }
 
 .tb-btn {
   padding: 6px 14px;
@@ -278,7 +277,7 @@ html, body {
   transition: 0.15s;
 }
 .editor-section:hover .section-remove { opacity: 1; }
-.section-remove:hover { border-color: var(--hot-pink); color: var(--hot-pink); }
+.section-remove:hover { border-color: #e55; color: #e55; }
 
 .section-header {
   font-size: 16px;
@@ -404,7 +403,6 @@ html, body {
 }
 .dl-btn:disabled { cursor: default; }
 .dl-btn:not(:disabled):hover { border-color: var(--orange-dark); color: var(--orange-dark); }
-.record-playback { width: 100%; margin-top: 4px; }
 
 .record-waveform {
   display: flex;
