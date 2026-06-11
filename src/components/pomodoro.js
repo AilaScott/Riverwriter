@@ -130,11 +130,11 @@ export function createPomodoro(container) {
   }
 
   function getFocusTime() {
-    return parseFloat(focusSelect.value) * 60;
+    return parseInt(focusSelect.value) * 60;
   }
 
   function getBreakTime() {
-    return parseFloat(breakSelect.value) * 60;
+    return parseInt(breakSelect.value) * 60;
   }
 
   function setTimeLeft(secs) {
