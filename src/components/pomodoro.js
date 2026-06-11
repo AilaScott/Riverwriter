@@ -70,7 +70,7 @@ export function createPomodoro(container) {
     prog.setAttribute('cy', '60');
     prog.setAttribute('r', '50');
     prog.setAttribute('fill', 'none');
-    prog.setAttribute('stroke', 'var(--teal)');
+    prog.setAttribute('stroke', 'var(--orange-dark)');
     prog.setAttribute('stroke-width', '8');
     prog.setAttribute('stroke-linecap', 'round');
     prog.setAttribute('stroke-dasharray', circumference);
@@ -162,15 +162,9 @@ export function createPomodoro(container) {
       popupProgressCircle.style.strokeDashoffset = circumference * progress;
     }
 
-    if (state.mode === 'break') {
-      label.textContent = 'BREAK';
-      label.style.color = 'var(--teal)';
-      progressCircle.style.stroke = 'var(--teal)';
-    } else {
-      label.textContent = 'FOCUS';
-      label.style.color = 'var(--orange-dark)';
-      progressCircle.style.stroke = 'var(--orange-dark)';
-    }
+    label.textContent = state.mode === 'break' ? 'BREAK' : 'FOCUS';
+    label.style.color = 'var(--orange-dark)';
+    progressCircle.style.stroke = 'var(--orange-dark)';
   }
 
   function playSound() {
